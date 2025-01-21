@@ -1,0 +1,8 @@
+{
+  "Special Transfer-Done String": "Spezifischer 'Transfer erledigt' Text",
+  "Special String to indicate that transfer was already done. If empty, default one 'todos_transferred' is used. Will be removed on next day.": "Spezifischer Text, der anzeigt dass die aktuelle Journal-Seite bereits aktualisiert wurde. Wenn leer, dann wird als Standard 'todos_transferred' genutzt. Dieser Text wird am nächsten Tag entfernt.",
+  "Hidden Transfer-Done Comment": "Versteckter 'Transfer erledigt' Kommentar",
+  "Use hidden comment to indicate transfer was already done. If false (default), some small readable indication is used.": "Benutze einen versteckten Kommentar, um einen erledigten Transfer auf einer Seite zu markieren. Wenn nicht aktiviert (standard), dann wird eine kleine, lesbare Darstellung benutzt.",
+  "Journal Template": "Journal Vorlage",
+  "Template to apply once on Todays Journal. This is not like the common Journal template, which get's applied to any newly created, today or future Journal.": "Vorlage die auf das heutige Journal angewandt wird. Dies ist nicht das gleiche wie bei der Standard-Journal-Vorlage, welche auf alle neu erstellten, heutigen und zukünftigen Journalseiten angewandt wird."
+}

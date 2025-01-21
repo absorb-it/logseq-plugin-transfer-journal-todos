@@ -1,0 +1,38 @@
+{
+  "name": "logseq-plugin-transfer-journal-todos",
+  "description": "Transfer open TODOs from last day into today, probably apply todays Template.",
+  "repository": "https://github.com/absorb-it/logseq-plugin-transfer-journal-todos.git",
+  "author": "Rene (absorb-it)",
+  "version": "0.1",
+  "license": "MIT",
+  "main": "index.html",
+  "logseq": {
+        "id": "transfer-journal-todos",
+        "title": "Transfer undone TODOs",
+        "icon": "./icon.png"
+  },
+  "scripts": {
+      "preinstall": "npx only-allow pnpm",
+      "clean": "rm -r ./dist/* || true",
+      "dev": "vite",
+      "build": "vite build && cp README.md LICENSE icon.png package.json dist/",
+      "prod": "npm run clean && vite build"
+  },
+  "scripts_old": {
+    "build": "tsc && vite build --mode=dev"
+  },
+  "devDependencies": {
+    "@types/node": "^18.7.16",
+    "@typescript-eslint/eslint-plugin": "^5.36.2",
+    "@typescript-eslint/parser": "^5.36.2",
+    "eslint": "^8.23.0",
+    "typescript": "^4.8.3",
+    "vite": "^3.1.0",
+    "date-fns": "^2.29.3",
+    "date-fns-tz": "^1.3.4",
+    "logseq-l10n": "^0.2.0"
+  },
+  "dependencies": {
+    "@logseq/libs": "0.0.9"
+  }
+}
