@@ -1,75 +1,11 @@
 import '@logseq/libs';
-import {BlockEntity} from '@logseq/libs/dist/LSPlugin';
+import {BlockEntity, BlockUUIDTuple, PageEntity} from '@logseq/libs/dist/LSPlugin.user';
 import {format} from 'date-fns';
-import {t} from 'logseq-l10n';
+import { setup as l10nSetup, t, } from "logseq-l10n"
 
+import { todoRegex, commentStart, commentEnd, smallIndicatorStart, smallIndicatorEnd, transferDone, settingsTemplate } from './settings'
+import { checkIgnore, escapeRegExp, isBlockEntity, recursivelyCheckForRegexInBlock, getLastBlock, insertTemplateBlock } from './lib'
 import de from "./translations/de.json";
-
-
-let config;
-
-const todoRegex = /^(TODO)\s+/;
-const commentStart = "#+BEGIN_COMMENT\n";
-const commentEnd = "\n#+END_COMMENT";
-const smallIndicatorStart = "[^";
-const smallIndicatorEnd = "]";
-const transferDone = "todos_transferred"
-const ignoreTodos = "dont_transfer"
-const settingsSchema = [
-  {
-    key: 'transferDoneString',
-    type: 'string',
-    title: t("Special Transfer-Done String"),
-    description: t("Special String to indicate that transfer was already done. If empty, default one 'todos_transferred' is used. Will be removed on next day."),
-    default: '',
-  }, {
-    key: 'transferDoneComment',
-    type: 'boolean',
-    title: t("Hidden Transfer-Done Comment"),
-    description: t("Use hidden comment to indicate transfer was already done. If false (default), some small readable indication is used."),
-    default: false,
-  }, {
-    key: 'journalTemplate',
-    type: 'string',
-    title: t("Journal Template"),
-    description: t("Template to apply once on Todays Journal. This is not like the common Journal template, which get's applied to any newly created, today or future Journal."),
-    default: '',
-  }]
-
-function escapeRegExp(inputString: string) {
-    return inputString.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
-function checkIgnore(srcBlock) {
-  let ignoreRegex =  new RegExp(escapeRegExp(ignoreTodos));
-  return ignoreRegex.test(srcBlock.content);
-}
-
-function recursivelyCheckForRegexInBlock(block: BlockEntity, regex: RegExp): boolean {
-  if (block.children !== undefined) {
-    return regex.test(block.content) || block.children.some(child => recursivelyCheckForRegexInBlock(child, regex));
-  } else {
-    return regex.test(block.content)
-  };
-}
-
-async function getLastBlock(pageName: string) {
-  const blocks = await logseq.Editor.getPageBlocksTree(pageName);
-  if (blocks.length === 0) {
-    return null;
-  }
-  return blocks[blocks.length - 1];
-};
-
-async function insertTemplateBlock(blockUuid, template: string) {
-  const exist = await logseq.App.existTemplate(template) as boolean
-  if (exist === true) {
-    const newBlock = await logseq.Editor.insertBlock(blockUuid, "", { sibling: true, isPageBlock: true, before: true, focus: false })
-    if (newBlock) {
-      await logseq.App.insertTemplate(newBlock.uuid, template);
-    }
-  }
-}
 
 async function queryCurrentRepoRangeJournals(untilDate) {
   try {
@@ -88,13 +24,13 @@ async function queryCurrentRepoRangeJournals(untilDate) {
   }
 }
 
-async function updateNewJournalWithAllTODOs(newJournal) {
+async function updateNewJournalWithAllTODOs(newJournal: PageEntity) {
   const newJournalBlocks = await logseq.Editor.getPageBlocksTree(newJournal.name);
 
   let transferDoneString =
-      (logseq.settings.transferDoneComment?commentStart:smallIndicatorStart) +
-      (logseq.settings.transferDoneString?logseq.settings.transferDoneString:transferDone) +
-      (logseq.settings.transferDoneComment?commentEnd:smallIndicatorEnd);
+      ((logseq.settings!.transferDoneComment)?commentStart:smallIndicatorStart) +
+      ((logseq.settings!.transferDoneString)?logseq.settings!.transferDoneString:transferDone) +
+      ((logseq.settings!.transferDoneComment)?commentEnd:smallIndicatorEnd);
   let transferDoneRegexp = new RegExp(escapeRegExp(transferDoneString));
 
   let alreadyDone = false;
@@ -108,33 +44,38 @@ async function updateNewJournalWithAllTODOs(newJournal) {
       (prev, current) => prev['journal-day'] > current['journal-day'] ? prev : current
     );
 
-    const latestJournalBlocks = await logseq.Editor.getPageBlocksTree(latestJournal.name);
-    let newJournalLastBlock = await getLastBlock(newJournal.name);
-
-    // tag page with special String to indicate for today that we transferred all todos and applied templates
-    await logseq.Editor.prependBlockInPage(newJournal.name, transferDoneString);
-    await new Promise(f => setTimeout(f, 200));
-
-    // apply Template if configured
-    if (logseq.settings.journalTemplate) {
-      logseq.Editor.exitEditingMode();
-      await insertTemplateBlock(newJournalLastBlock.uuid, logseq.settings.journalTemplate)
-    }
-    await new Promise(f => setTimeout(f, 200));
-
-    // transfer undone TODOs from previous journal
+    let newJournalLastBlock;
     newJournalLastBlock = await getLastBlock(newJournal.name);
-    for (let group of latestJournalBlocks) {
-      if (group.content !== '') {
-          newJournalLastBlock = await recursiveTransferTODOs(group, newJournalLastBlock, false);
-          await recursiveCleanupNotTODOs(group);
+    if (newJournalLastBlock) {
+      // apply Template if configured
+      if (logseq.settings!.journalTemplate) {
+        await logseq.Editor.exitEditingMode();
+        let myTemplate;
+        myTemplate = logseq.settings!.journalTemplate;
+        if (myTemplate)
+          await insertTemplateBlock(newJournalLastBlock.uuid, myTemplate);
       }
     }
-    await logseq.Editor.insertBlock(newJournalLastBlock.uuid,'');
-    await new Promise(f => setTimeout(f, 200));
 
-    // logseq.UI.showMsg("Todays Journal page updated", { timeout: 2200 });
-    console.log("Todays Journal page updated");
+    // tag page with special String to indicate for today that we transferred all todos and applied templates
+    await logseq.Editor.exitEditingMode();
+    await logseq.Editor.prependBlockInPage(newJournal.name, transferDoneString);
+
+    await logseq.Editor.exitEditingMode();
+    const latestJournalBlocks = await logseq.Editor.getPageBlocksTree(latestJournal.name);
+    // transfer undone TODOs from previous journal
+    newJournalLastBlock = await getLastBlock(newJournal.name);
+    if (newJournalLastBlock) {
+      for (let group of latestJournalBlocks) {
+        if (group.content !== '') {
+            newJournalLastBlock = await recursiveTransferTODOs(group, newJournalLastBlock, false);
+            await recursiveCleanupNotTODOs(group);
+        }
+      }
+      await logseq.Editor.insertBlock(newJournalLastBlock.uuid,'');
+    }
+    logseq.UI.showMsg(`${t("Todays Journal page updated")}`, "success", { timeout: 2200 })
+    console.info("Todays Journal page updated");
   }
 }
 
@@ -143,8 +84,9 @@ async function recursiveTransferTODOs(srcBlock: BlockEntity, lastDestBlock: Bloc
   hasParentTodo = hasParentTodo || todoRegex.test(srcBlock.content);
 
   if (!(checkIgnore(srcBlock)) && (hasParentTodo || hasChildTodo)) {
-    let newBlock = lastDestBlock;
-    if (lastDestBlock.content !== '') {
+    let newBlock;
+    newBlock = lastDestBlock;
+    if (lastDestBlock && lastDestBlock.uuid && lastDestBlock.content !== '') {
       newBlock = await logseq.Editor.insertBlock(lastDestBlock.uuid, srcBlock.content, {
         sibling: true,
       });
@@ -153,14 +95,19 @@ async function recursiveTransferTODOs(srcBlock: BlockEntity, lastDestBlock: Bloc
       newBlock.content = srcBlock.content; // update doesn't update the instance.
     }
 
-    if (srcBlock.children.length > 0) {
-      let newChildBlock = await logseq.Editor.insertBlock(newBlock.uuid, '');
-      const firstChildBlockUUID = newChildBlock.uuid;
-      for (let child of srcBlock.children) {
-        newChildBlock = await recursiveTransferTODOs(child, newChildBlock, hasParentTodo);
-      }
-      if (newChildBlock.uuid === firstChildBlockUUID && newChildBlock.content === '') {
-        await logseq.Editor.removeBlock(newChildBlock.uuid);
+    if (newBlock && srcBlock.children && srcBlock.children.length > 0) {
+      let newChildBlock;
+      newChildBlock = await logseq.Editor.insertBlock(newBlock.uuid, '');
+      if (newChildBlock)  {
+        const firstChildBlockUUID = newChildBlock.uuid;
+        for (let child of srcBlock.children) {
+          if (isBlockEntity(child)) {
+            newChildBlock = await recursiveTransferTODOs(child, newChildBlock, hasParentTodo);
+          }
+        }
+        if (newChildBlock.uuid === firstChildBlockUUID && newChildBlock.content === '') {
+          await logseq.Editor.removeBlock(newChildBlock.uuid);
+        }
       }
     }
     return newBlock;
@@ -169,36 +116,47 @@ async function recursiveTransferTODOs(srcBlock: BlockEntity, lastDestBlock: Bloc
   }
 }
 
-async function recursiveCleanupNotTODOs(srcBlock: BlockEntity): boolean {
-  let hadChilds = srcBlock.children.length;
-  let transferDoneString =
-    logseq.settings.transferDoneString?logseq.settings.transferDoneString:transferDone;
+function recursiveCleanupNotTODOs(srcBlock: BlockEntity | BlockUUIDTuple): boolean {
+  if (isBlockEntity(srcBlock)) {
+    let hadChilds = srcBlock.children?srcBlock.children.length:0;
+    let transferDoneString =
+      (logseq.settings!.transferDoneString)?logseq.settings!.transferDoneString:transferDone;
 
-  let removedChilds = 0
-  if (!(checkIgnore(srcBlock))) {
-    removedChilds += srcBlock.children.map(child => { return (recursiveCleanupNotTODOs(child))?1:0; });
-    if (todoRegex.test(srcBlock.content) || (hadChilds && removedChilds == hadChilds)) {
-      await logseq.Editor.removeBlock(srcBlock.uuid);
-      return true;
+    let removedChilds = 0
+    if (!(checkIgnore(srcBlock))) {
+      if (srcBlock.children) {
+        srcBlock.children.map(child => {
+          if (recursiveCleanupNotTODOs(child)) {
+            removedChilds++;
+          }
+        });
+      }
+      if (todoRegex.test(srcBlock.content) || srcBlock.content == "" || (hadChilds && removedChilds == hadChilds)) {
+        logseq.Editor.removeBlock(srcBlock.uuid);
+        return true;
+      }
     }
+
+    let string1 = commentStart + transferDoneString + commentEnd;
+    let string2 = smallIndicatorStart + transferDoneString + smallIndicatorEnd;
+    logseq.Editor.updateBlock(
+      srcBlock.uuid, srcBlock.content.replace(string1, "").replace(string2, "")
+    );
   }
-
-  let string1 = commentStart + transferDoneString + commentEnd;
-  let string2 = smallIndicatorStart + transferDoneString + smallIndicatorEnd;
-  await logseq.Editor.updateBlock(
-    srcBlock.uuid, srcBlock.content.replace(string1, "").replace(string2, "")
-  );
-
   return false;
 };
 
 async function main() {
-  config = await logseq.App.getUserConfigs();
-  // await l10nSetup({
-  //   builtinTranslations: {  // import translations
-  //     de
-  //   }
-  // })
+  let config = await logseq.App.getUserConfigs();
+
+  await l10nSetup({
+    builtinTranslations: {//Full translations
+      de
+    }
+  })
+
+  /* user settings */
+  await logseq.useSettingsSchema(settingsTemplate());
 
   setInterval(async function () {
     let page = await logseq.Editor.getPage(format(new Date(), config.preferredDateFormat));
@@ -214,9 +172,11 @@ async function main() {
         }
       );
     }
-    await updateNewJournalWithAllTODOs(page);
-  },10000);
+    if(page) {
+      await updateNewJournalWithAllTODOs(page);
+    }
+  }, 60000);
 }
 
 // bootstrap
-logseq.useSettingsSchema(settingsSchema).ready(main).catch(null)
+logseq.ready(main).catch(null)
