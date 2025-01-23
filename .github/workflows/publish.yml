@@ -38,8 +38,9 @@ jobs:
         run: pnpm prod
 
       - name: Zip Dist
+        id: zip
         run: |
-          zip -qq -r ${{ env.PLUGIN_NAME }}.zip dist icon.svg package.json README.md LICENSE
+          zip -qq -r ${{ env.PLUGIN_NAME }}.zip dist icon.png package.json README.md LICENSE
           echo "::set-output name=tag_name::$(git tag --sort version:refname | tail -n 1)"
       - name: Create Release
         uses: ncipollo/release-action@v1
@@ -60,7 +61,7 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./${{ env.PLUGIN_NAME }}.zip
-          asset_name: ${{ env.PLUGIN_NAME }}-${{ steps.build.outputs.tag_name }}.zip
+          asset_name: ${{ env.PLUGIN_NAME }}-${{ steps.zip.outputs.tag_name }}.zip
           asset_content_type: application/zip
 
 
