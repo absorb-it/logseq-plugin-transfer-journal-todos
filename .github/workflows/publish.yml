@@ -8,6 +8,7 @@ on:
     # Sequence of patterns matched against refs/tags
     tags:
       - "*" # Push events to matching any tag format, i.e. 1.0, 20.15.10
+contents: write
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -36,7 +37,7 @@ jobs:
       - name: Zip Dist
         run: |
           zip -qq -r ${{ env.PLUGIN_NAME }}.zip dist icon.svg package.json README.md LICENSE
-
+          echo "::set-output name=tag_name::$(git tag --sort version:refname | tail -n 1)"
       - name: Create Release
         uses: ncipollo/release-action@v1
         id: create_release
