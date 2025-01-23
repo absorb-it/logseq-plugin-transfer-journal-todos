@@ -33,6 +33,31 @@ jobs:
       - name: Build dist
         run: pnpm prod
 
-      - name: Install zip
-        uses: montudor/action-zip@v1
+      - name: Zip Dist
+        run: |
+          zip -qq -r ${PLUGIN_NAME}-` + "${nextRelease.version}.zip dist icon.svg package.json README.md LICENSE
+
+      - name: Create Release
+        uses: ncipollo/release-action@v1
+        id: create_release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ github.ref }}
+        with:
+          allowUpdates: true
+          draft: false
+          prerelease: false
+
+      - name: Upload zip file
+        id: upload_zip
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./${{ env.PLUGIN_NAME }}.zip
+          asset_name: ${{ env.PLUGIN_NAME }}-${{ steps.build.outputs.tag_name }}.zip
+          asset_content_type: application/zip
+
+
 
