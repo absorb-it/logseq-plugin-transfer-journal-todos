@@ -35,7 +35,7 @@ jobs:
 
       - name: Zip Dist
         run: |
-          zip -qq -r ${PLUGIN_NAME}-` + "${nextRelease.version}.zip dist icon.svg package.json README.md LICENSE
+          `zip -qq -r ${PLUGIN_NAME}-` + "${nextRelease.version}.zip dist icon.svg package.json README.md LICENSE"
 
       - name: Create Release
         uses: ncipollo/release-action@v1
