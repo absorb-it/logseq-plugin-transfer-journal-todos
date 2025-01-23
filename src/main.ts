@@ -25,6 +25,8 @@ async function queryCurrentRepoRangeJournals(untilDate) {
 }
 
 async function updateNewJournalWithAllTODOs(newJournal: PageEntity) {
+  logseq.showMainUI();
+
   const newJournalBlocks = await logseq.Editor.getPageBlocksTree(newJournal.name);
 
   let transferDoneString =
@@ -77,6 +79,8 @@ async function updateNewJournalWithAllTODOs(newJournal: PageEntity) {
     logseq.UI.showMsg(`${t("Todays Journal page updated")}`, "success", { timeout: 2200 })
     console.info("Todays Journal page updated");
   }
+  setTimeout(() =>
+    logseq.hideMainUI(), 200)
 }
 
 async function recursiveTransferTODOs(srcBlock: BlockEntity, lastDestBlock: BlockEntity, hasParentTodo: boolean) {
@@ -175,7 +179,7 @@ async function main() {
     if(page) {
       await updateNewJournalWithAllTODOs(page);
     }
-  }, 60000);
+  }, ((logseq.settings!.checkingInterval)?parseInt(logseq.settings!.checkingInterval + "")*1000:60000));
 }
 
 // bootstrap

@@ -3,7 +3,10 @@ import { ignoreTodos } from './settings'
 import { t } from 'logseq-l10n'
 
 export function checkIgnore(srcBlock) {
-  let ignoreRegex =  new RegExp(escapeRegExp(ignoreTodos));
+  let ignoreString:string =
+      ((logseq.settings!.dontTransferString)?logseq.settings!.dontTransferString:ignoreTodos) + "";
+
+  let ignoreRegex =  new RegExp(escapeRegExp(ignoreString));
   return ignoreRegex.test(srcBlock.content);
 }
 
