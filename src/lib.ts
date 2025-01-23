@@ -35,7 +35,6 @@ export async function getLastBlock(pageName: string) {
 };
 
 export async function insertTemplateBlock(blockUuid, template: string) {
-  // logseq.showMainUI()
 
   // logseq.Editor.updateBlock(blockUuid, "")
   const exist = await logseq.App.existTemplate(template) as boolean
@@ -45,7 +44,7 @@ export async function insertTemplateBlock(blockUuid, template: string) {
     if (newBlock) {
       logseq.App.insertTemplate(newBlock.uuid, template).finally(() => {
         console.log(`Render insert template ${template}`)
-        logseq.Editor.removeBlock(blockUuid)
+        // logseq.Editor.removeBlock(blockUuid)
         setTimeout(() =>
           logseq.Editor.exitEditingMode(), 100)
       })
@@ -55,7 +54,6 @@ export async function insertTemplateBlock(blockUuid, template: string) {
     console.warn(`Template "${template}" not found.`)
   }
 
-  setTimeout(() =>
-    logseq.hideMainUI(), 200)
+
 }
 
