@@ -1,24 +1,12 @@
-import { defineConfig } from 'vite';
-import path from 'path';
+import { defineConfig } from "vite";
+import logseqDevPlugin from "vite-plugin-logseq";
 
+// https://vitejs.dev/config/
 export default defineConfig({
-  base: './',
+  plugins: [logseqDevPlugin()],
+  // Makes HMR available for development
   build: {
-    sourcemap: false,
-    target: 'esnext',
-    minify: 'esbuild',
-    chunkSizeWarningLimit: 1024,
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          logseq: ['@logseq/libs'],
-        },
-      },
-    },
-  },
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './src'),
-    },
+    target: "esnext",
+    minify: "esbuild",
   },
 });
