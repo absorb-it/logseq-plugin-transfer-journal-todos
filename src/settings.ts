@@ -39,7 +39,7 @@ export const settingsTemplate = (): SettingSchemaDesc[] => [
     key: 'checkingInterval',
     type: 'number',
     title: t("Checking Interval"),
-    description: t("This is the time between parsing and checking, if current days Journal page needs an update. Default is every minute, but you can set the seconds here to modify this value."),
+    description: t("This is the time in Seconds between checking, if todays Journal page needs an update. Default is every minute, but you can set the seconds here to modify this value."),
     default: 60,
   }
 ]
