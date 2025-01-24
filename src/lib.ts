@@ -18,6 +18,14 @@ export function isBlockEntity(b: BlockEntity | BlockUUIDTuple): b is BlockEntity
   return (b as BlockEntity).uuid !== undefined;
 }
 
+export function buildTransferDoneString(inputString: any) {
+  let transferDoneString =
+      ((logseq.settings!.transferDoneComment)?commentStart:smallIndicatorStart) +
+      ((inputString)?inputString:transferDone) +
+      ((logseq.settings!.transferDoneComment)?commentEnd:smallIndicatorEnd);
+  return transferDoneString;
+}
+
 export function recursivelyCheckForRegexInBlock(block: BlockEntity | BlockUUIDTuple, regex: RegExp): boolean {
   if (isBlockEntity(block)) {
     if (block.children) {

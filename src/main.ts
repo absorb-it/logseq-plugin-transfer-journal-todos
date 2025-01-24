@@ -28,10 +28,7 @@ async function updateNewJournalWithAllTODOs(newJournal: PageEntity) {
 
   const newJournalBlocks = await logseq.Editor.getPageBlocksTree(newJournal.name);
 
-  let transferDoneString =
-      ((logseq.settings!.transferDoneComment)?commentStart:smallIndicatorStart) +
-      ((logseq.settings!.transferDoneString)?logseq.settings!.transferDoneString:transferDone) +
-      ((logseq.settings!.transferDoneComment)?commentEnd:smallIndicatorEnd);
+  let transferDoneString = buildTransferDoneString(logseq.settings!.transferDoneString)
   let transferDoneRegexp = new RegExp(escapeRegExp(transferDoneString));
 
   let alreadyDone = false;
