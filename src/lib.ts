@@ -1,5 +1,5 @@
 import {BlockEntity, BlockUUIDTuple, PageEntity} from '@logseq/libs/dist/LSPlugin.user';
-import { ignoreTodos } from './settings'
+import { commentStart, commentEnd, smallIndicatorStart, smallIndicatorEnd, transferDone, ignoreTodos } from './settings'
 import { t } from 'logseq-l10n'
 
 export function checkIgnore(srcBlock) {
@@ -24,6 +24,24 @@ export function buildTransferDoneString(inputString: any) {
       ((inputString)?inputString:transferDone) +
       ((logseq.settings!.transferDoneComment)?commentEnd:smallIndicatorEnd);
   return transferDoneString;
+}
+
+
+export async function replaceBlockString(newJournal: PageEntity, oldString, newString) {
+  const blocks = await logseq.Editor.getPageBlocksTree(newJournal.name);
+
+  for (let group of blocks) {
+    recursivelyReplaceStringInBlock(group, oldString, newString);
+  }
+}
+
+export function recursivelyReplaceStringInBlock(block: BlockEntity | BlockUUIDTuple, oldString: string, newString: string) {
+  if (isBlockEntity(block)) {
+    if (block.children) {
+      block.children.some(child => recursivelyReplaceStringInBlock(child, oldString, newString));
+    };
+    logseq.Editor.updateBlock(block.uuid, block.content.replace(oldString, newString));
+  }
 }
 
 export function recursivelyCheckForRegexInBlock(block: BlockEntity | BlockUUIDTuple, regex: RegExp): boolean {

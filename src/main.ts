@@ -1,10 +1,10 @@
 import '@logseq/libs';
-import {BlockEntity, BlockUUIDTuple, PageEntity} from '@logseq/libs/dist/LSPlugin.user';
+import {LSPluginBaseInfo, BlockEntity, BlockUUIDTuple, PageEntity} from '@logseq/libs/dist/LSPlugin.user';
 import {format} from 'date-fns';
 import { setup as l10nSetup, t, } from "logseq-l10n"
 
-import { todoRegex, commentStart, commentEnd, smallIndicatorStart, smallIndicatorEnd, transferDone, settingsTemplate } from './settings'
-import { checkIgnore, escapeRegExp, isBlockEntity, recursivelyCheckForRegexInBlock, getLastBlock, insertTemplateBlock } from './lib'
+import { todoRegex, ignoreTodos, commentStart, commentEnd, smallIndicatorStart, smallIndicatorEnd, transferDone, settingsTemplate } from './settings'
+import { buildTransferDoneString, checkIgnore, escapeRegExp, isBlockEntity, recursivelyCheckForRegexInBlock, replaceBlockString, getLastBlock, insertTemplateBlock } from './lib'
 import de from "./translations/de.json";
 
 async function queryCurrentRepoRangeJournals(untilDate) {
@@ -148,6 +148,27 @@ function recursiveCleanupNotTODOs(srcBlock: BlockEntity | BlockUUIDTuple): boole
   return false;
 };
 
+async function updatePage() {
+  console.info("starting updatePage");
+  let config = await logseq.App.getUserConfigs();
+  let page = await logseq.Editor.getPage(format(new Date(), config.preferredDateFormat));
+  if(!page) {
+    console.info("Create new Journal");
+    await logseq.Editor.createPage(
+      format(new Date(), config.preferredDateFormat),
+      {},
+      {
+        createFirstBlock: true,
+        redirect: false,
+        journal: true,
+      }
+    );
+  }
+  if(page) {
+    await updateNewJournalWithAllTODOs(page);
+  }
+}
+
 async function main() {
   let config = await logseq.App.getUserConfigs();
 
@@ -160,24 +181,33 @@ async function main() {
   /* user settings */
   await logseq.useSettingsSchema(settingsTemplate());
 
-  setInterval(async function () {
-    let page = await logseq.Editor.getPage(format(new Date(), config.preferredDateFormat));
-    if(!page) {
-      console.warn("Create new Journal");
-      await logseq.Editor.createPage(
-        format(new Date(), config.preferredDateFormat),
-        {},
-        {
-          createFirstBlock: true,
-          redirect: false,
-          journal: true,
+  let checkingInterval = setInterval(updatePage, (parseInt(logseq.settings!.checkingInterval! + "")|60)*1000);
+
+  logseq.onSettingsChanged(async (newSet: LSPluginBaseInfo['settings'], oldSet: LSPluginBaseInfo['settings']) => {
+      if (newSet.checkingInterval !== oldSet.checkingInterval) {
+        let checkingIntervalTime = parseInt(newSet.checkingInterval + "") * 1000;
+        clearInterval(checkingInterval);
+        checkingInterval = setInterval(updatePage, checkingIntervalTime?checkingIntervalTime:60000);
+      }
+      if (newSet.transferDoneString !== oldSet.transferDoneString){
+        let page = await logseq.Editor.getPage(format(new Date(), config.preferredDateFormat));
+        if(page) {
+          replaceBlockString(page,
+                            buildTransferDoneString(oldSet.transferDoneString),
+                            buildTransferDoneString(newSet.transferDoneString)
+                            );
         }
-      );
+      }
+     if (newSet.dontTransferString !== oldSet.dontTransferString){
+        let page = await logseq.Editor.getPage(format(new Date(), config.preferredDateFormat));
+        if(page) {
+          replaceBlockString(page,
+                             (oldSet.dontTransferString)?oldSet.dontTransferString:ignoreTodos,
+                             (newSet.dontTransferString)?newSet.dontTransferString:ignoreTodos);
+        }
+      }
     }
-    if(page) {
-      await updateNewJournalWithAllTODOs(page);
-    }
-  }, ((logseq.settings!.checkingInterval)?parseInt(logseq.settings!.checkingInterval + "")*1000:60000));
+  );
 }
 
 // bootstrap
