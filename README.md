@@ -6,7 +6,11 @@ This plugin has two functions:
 * Calls a Template only once and only when journal is the one of the current day
   * this way you can use daily templates and the agenda to plan your future jobs
   
-This plugin combines both features, because modifying and moving TODOs between journals might collide with templates getting applied in the same moment
+You can find similar plugins at
+  * https://github.com/ehudhala/logseq-plugin-daily-todo and
+  * https://github.com/alecdibble/logseq-journal-auto-copier
+  
+But both of these don't work well when using daily templates or if you like to schedule tasks on future dates as well.
 
 The plugin skeleton and a lot of othe features are copy/pasted from
   * https://github.com/ehudhala/logseq-plugin-daily-todo
@@ -25,11 +29,15 @@ Suggestions and improvements are welcome.
 
 ## Installation
 
-pnpm build
+pnpm Install  // will download required libraries
+pnpm build    // will check the software
+pnpm prod     // will produce release files
 
 ### Preparation
 
 ### Install plugins from Marketplace (recommended)
+
+not yet available
 
 ### Install plugins manually
 
