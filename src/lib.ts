@@ -70,7 +70,7 @@ export async function insertTemplateBlock(blockUuid, template: string) {
     const newBlock = await logseq.Editor.insertBlock(blockUuid, "", { sibling: true, isPageBlock: true, before: true, focus: false })
     if (newBlock) {
       logseq.App.insertTemplate(newBlock.uuid, template).finally(() => {
-        console.info(`Render insert template ${template}`)
+        console.debug(`Render insert template ${template}`)
         setTimeout(() =>
           logseq.Editor.exitEditingMode(), 100)
       })

@@ -25,7 +25,7 @@ async function queryCurrentRepoRangeJournals(untilDate) {
 }
 
 async function updateNewJournalWithAllTODOs(newJournal: PageEntity) {
-  console.info("starting updateNewJournalWithAllTODOs");
+  console.debug("starting updateNewJournalWithAllTODOs");
 
   const newJournalBlocks = await logseq.Editor.getPageBlocksTree(newJournal.name);
 
@@ -76,7 +76,7 @@ async function updateNewJournalWithAllTODOs(newJournal: PageEntity) {
       await logseq.Editor.insertBlock(newJournalLastBlock.uuid,'');
     }
     logseq.UI.showMsg(`${t("Todays Journal page updated")}`, "success", { timeout: 2200 })
-    console.info("Todays Journal page updated");
+    console.debug("Todays Journal page updated");
     setTimeout(() =>
       logseq.hideMainUI(), 200)
   }
@@ -150,11 +150,11 @@ function recursiveCleanupNotTODOs(srcBlock: BlockEntity | BlockUUIDTuple): boole
 };
 
 async function updatePage() {
-  console.info("starting updatePage");
+  console.debug("starting updatePage");
   let config = await logseq.App.getUserConfigs();
   let page = await logseq.Editor.getPage(format(new Date(), config.preferredDateFormat));
   if(!page) {
-    console.info("Create new Journal");
+    console.debug("Create new Journal");
     await logseq.Editor.createPage(
       format(new Date(), config.preferredDateFormat),
       {},
