@@ -25,6 +25,7 @@ async function queryCurrentRepoRangeJournals(untilDate) {
 }
 
 async function updateNewJournalWithAllTODOs(newJournal: PageEntity) {
+  console.info("starting updateNewJournalWithAllTODOs");
 
   const newJournalBlocks = await logseq.Editor.getPageBlocksTree(newJournal.name);
 
