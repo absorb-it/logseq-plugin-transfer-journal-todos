@@ -12,28 +12,22 @@ You can find similar plugins at
   
 But both of these don't work well when using daily templates or if you like to schedule tasks on future dates as well.
 
-The plugin skeleton and a lot of othe features are copy/pasted from
-  * https://github.com/ehudhala/logseq-plugin-daily-todo
-  * https://github.com/YU000jp/logseq-plugin-weekdays-and-weekends
-  * https://github.com/alecdibble/logseq-journal-auto-copier
-  * https://github.com/vipzhicheng/logseq-plugin-move-block
+## Usage
 
-The Icon was retrieved from https://icon-library.com/icon/todo-icon-27.html.html>Todo Icon # 395663
-  
 Please note: this plugin is very specific to how I manage tasks in Logseq, and the code is still in an experimental but working state.
 Suggestions and improvements are welcome.
 
-## Usage
 
-...
+
+![working_schema](./working_schema.png)
+
+## Building yourself
+
+  * pnpm Install  // will download required libraries
+  * pnpm build    // will check the software
+  * pnpm prod     // will produce release files
 
 ## Installation
-
-pnpm Install  // will download required libraries
-pnpm build    // will check the software
-pnpm prod     // will produce release files
-
-### Preparation
 
 ### Install plugins from Marketplace (recommended)
 
@@ -45,5 +39,13 @@ not yet available
 * Unzip it.
 * Click `Load unpacked plugin`, and select destination directory to the unziped folder.
 
-## Licence
-MIT
+## References
+
+The plugin skeleton and a lot of othe features are copy/pasted from
+  * https://github.com/ehudhala/logseq-plugin-daily-todo
+  * https://github.com/YU000jp/logseq-plugin-weekdays-and-weekends
+  * https://github.com/alecdibble/logseq-journal-auto-copier
+  * https://github.com/vipzhicheng/logseq-plugin-move-block
+
+The Icon was retrieved from https://icon-library.com/icon/todo-icon-27.html.html>Todo Icon # 395663
+  
