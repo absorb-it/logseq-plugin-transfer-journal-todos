@@ -4,7 +4,7 @@ import {format} from 'date-fns';
 import { setup as l10nSetup, t, } from "logseq-l10n"
 
 import { todoRegex, ignoreTodos, commentStart, commentEnd, smallIndicatorStart, smallIndicatorEnd, transferDone, settingsTemplate } from './settings'
-import { buildTransferDoneString, checkIgnore, escapeRegExp, isBlockEntity, recursivelyCheckForRegexInBlock, replaceBlockString, getLastBlock, insertTemplateBlock } from './lib'
+import { delay, buildTransferDoneString, checkIgnore, escapeRegExp, isBlockEntity, recursivelyCheckForRegexInBlock, replaceBlockString, getLastBlock, insertTemplateBlock } from './lib'
 import de from "./translations/de.json";
 
 async function queryCurrentRepoRangeJournals(untilDate) {
@@ -44,6 +44,7 @@ async function updateNewJournalWithAllTODOs(newJournal: PageEntity) {
     const latestJournal = prevJournals.reduce(
       (prev, current) => prev['journal-day'] > current['journal-day'] ? prev : current
     );
+    await delay(200);
 
     let newJournalLastBlock;
     newJournalLastBlock = await getLastBlock(newJournal.name);
@@ -57,10 +58,12 @@ async function updateNewJournalWithAllTODOs(newJournal: PageEntity) {
           await insertTemplateBlock(newJournalLastBlock.uuid, myTemplate);
       }
     }
+    await delay(200);
 
     // tag page with special String to indicate for today that we transferred all todos and applied templates
     await logseq.Editor.exitEditingMode();
     await logseq.Editor.prependBlockInPage(newJournal.name, transferDoneString);
+    await delay(200);
 
     await logseq.Editor.exitEditingMode();
     const latestJournalBlocks = await logseq.Editor.getPageBlocksTree(latestJournal.name);

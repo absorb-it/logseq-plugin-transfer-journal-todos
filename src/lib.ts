@@ -2,6 +2,10 @@ import {BlockEntity, BlockUUIDTuple, PageEntity} from '@logseq/libs/dist/LSPlugi
 import { commentStart, commentEnd, smallIndicatorStart, smallIndicatorEnd, transferDone, ignoreTodos } from './settings'
 import { t } from 'logseq-l10n'
 
+export function delay(ms: number) {
+    return new Promise( resolve => setTimeout(resolve, ms) );
+}
+
 export function checkIgnore(srcBlock) {
   let ignoreString:string =
       ((logseq.settings!.dontTransferString)?logseq.settings!.dontTransferString:ignoreTodos) + "";
