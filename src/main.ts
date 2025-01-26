@@ -185,7 +185,8 @@ async function main() {
   /* user settings */
   await logseq.useSettingsSchema(settingsTemplate());
 
-  let checkingInterval = setInterval(updatePage, (parseInt(logseq.settings!.checkingInterval! + "")|60)*1000);
+  let checkingIntervalTime = parseInt(logseq.settings!.checkingInterval! + "") * 1000;
+  let checkingInterval = setInterval(updatePage, checkingIntervalTime?checkingIntervalTime:60000);
 
   logseq.onSettingsChanged(async (newSet: LSPluginBaseInfo['settings'], oldSet: LSPluginBaseInfo['settings']) => {
       if (newSet.checkingInterval !== oldSet.checkingInterval) {
