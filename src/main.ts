@@ -41,7 +41,7 @@ async function updateNewJournalWithAllTODOs(newJournal: PageEntity) {
     logseq.showMainUI();
 
     const prevJournals = await queryCurrentRepoRangeJournals(newJournal['journalDay']);
-    if (!prevJournals)
+    if (!prevJournals || prevJournals.length == 0)
       return;
     const latestJournal = prevJournals.reduce(
       (prev, current) => prev['journal-day'] > current['journal-day'] ? prev : current
