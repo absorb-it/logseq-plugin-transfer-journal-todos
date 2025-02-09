@@ -40,14 +40,6 @@ async function updateNewJournalWithAllTODOs(newJournal: PageEntity) {
   if (!alreadyDone) {
     logseq.showMainUI();
 
-    const prevJournals = await queryCurrentRepoRangeJournals(newJournal['journalDay']);
-    if (!prevJournals || prevJournals.length == 0)
-      return;
-    const latestJournal = prevJournals.reduce(
-      (prev, current) => prev['journal-day'] > current['journal-day'] ? prev : current
-    );
-    await delay(200);
-
     let newJournalLastBlock;
     newJournalLastBlock = await getLastBlock(newJournal.name);
     if (newJournalLastBlock) {
@@ -67,19 +59,29 @@ async function updateNewJournalWithAllTODOs(newJournal: PageEntity) {
     await logseq.Editor.prependBlockInPage(newJournal.name, transferDoneString);
     await delay(200);
 
-    await logseq.Editor.exitEditingMode();
-    const latestJournalBlocks = await logseq.Editor.getPageBlocksTree(latestJournal.name);
-    // transfer undone TODOs from previous journal
-    newJournalLastBlock = await getLastBlock(newJournal.name);
-    if (newJournalLastBlock) {
-      for (let group of latestJournalBlocks) {
-        if (group.content !== '') {
-            newJournalLastBlock = await recursiveTransferTODOs(group, newJournalLastBlock, false);
-            await recursiveCleanupNotTODOs(group);
+    const prevJournals = await queryCurrentRepoRangeJournals(newJournal['journalDay']);
+    try {
+      const latestJournal = prevJournals.reduce(
+        (prev, current) => prev['journal-day'] > current['journal-day'] ? prev : current
+      );
+
+      await delay(200);
+
+      await logseq.Editor.exitEditingMode();
+      const latestJournalBlocks = await logseq.Editor.getPageBlocksTree(latestJournal.name);
+      // transfer undone TODOs from previous journal
+      newJournalLastBlock = await getLastBlock(newJournal.name);
+      if (newJournalLastBlock) {
+        for (let group of latestJournalBlocks) {
+          if (group.content !== '') {
+              newJournalLastBlock = await recursiveTransferTODOs(group, newJournalLastBlock, false);
+              await recursiveCleanupNotTODOs(group);
+          }
         }
+        await logseq.Editor.insertBlock(newJournalLastBlock.uuid,'');
       }
-      await logseq.Editor.insertBlock(newJournalLastBlock.uuid,'');
-    }
+    } catch (e) { };
+
     logseq.UI.showMsg(`${t("Todays Journal page updated")}`, "success", { timeout: 2200 })
     console.debug("Todays Journal page updated");
     setTimeout(() =>
