@@ -27,7 +27,7 @@ Just install and enable it and it works :) Some things might be good to know:
 
 ## Building yourself
 
-  * pnpm Install  // will download required libraries
+  * pnpm install  // will download required libraries
   * pnpm build    // will check the software
   * pnpm prod     // will produce release files
 
